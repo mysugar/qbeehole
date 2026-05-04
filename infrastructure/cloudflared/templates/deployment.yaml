@@ -58,4 +58,8 @@ data:
     no-autoupdate: true
     ingress:
       # Forward all traffic to the NGINX Ingress Controller
-      - service: http://infrastructure-ingress-nginx-controller.ingress-nginx.svc.cluster.local:80
+      - hostname: "*.want.trade"
+        service: http://infrastructure-ingress-nginx-controller.ingress-nginx.svc.cluster.local:80
+      - hostname: "argocd-webhook.want.trade"
+        service: http://argocd-server.argocd.svc.cluster.local:80
+      - service: http_status:404
