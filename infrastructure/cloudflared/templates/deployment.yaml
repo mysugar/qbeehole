@@ -58,4 +58,4 @@ data:
     no-autoupdate: true
     ingress:
       # Forward all traffic to the NGINX Ingress Controller
-      - service: http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80
+      - service: http://infrastructure-ingress-nginx-controller.ingress-nginx.svc.cluster.local:80
