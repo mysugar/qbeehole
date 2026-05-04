@@ -15,10 +15,38 @@
       when: ansible_swaptotal_mb > 0
       ignore_errors: true
 
+    - name: Ensure /etc/rancher/k3s directory exists
+      file:
+        path: /etc/rancher/k3s
+        state: directory
+        mode: '0755'
+
+    - name: Configure k3s proxy environment file
+      template:
+        src: k3s.service.env.j2
+        dest: /etc/systemd/system/k3s.service.env
+        mode: '0600'
+      register: proxy_config
+
+    - name: Configure k3s container registries
+      template:
+        src: registries.yaml.j2
+        dest: /etc/rancher/k3s/registries.yaml
+        mode: '0644'
+      register: registry_config
+
     - name: Install k3s
-      shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='server {{ k3s_install_args }}' sh -"
+      shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} INSTALL_K3S_EXEC='server {{ k3s_install_args }}' sh -"
+      environment: "{{ proxy_env }}"
       args:
         creates: /usr/local/bin/k3s
+
+    - name: Restart k3s if config changed
+      systemd:
+        name: k3s
+        state: restarted
+        daemon_reload: true
+      when: proxy_config.changed or registry_config.changed
 
     - name: Wait for k3s to be ready
       wait_for:

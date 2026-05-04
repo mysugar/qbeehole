@@ -8,23 +8,18 @@
         src: /var/lib/rancher/k3s/server/node-token
       register: node_token_b64
 
-    - name: Get k3s version from master
-      shell: k3s --version | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+\+k3s[0-9]+'
-      register: master_version_cmd
-
-    - name: Store facts
+    - name: Store token as fact
       set_fact:
         k3s_token: "{{ node_token_b64.content | b64decode | trim }}"
-        k3s_version: "{{ master_version_cmd.stdout | trim }}"
 
 - name: Join Worker Node to Cluster
   hosts: k3s_workers
   become: true
   vars:
-    # 从 k3s_nodes 组的第一个主机获取 facts
     master_ip: "{{ hostvars[groups['k3s_nodes'][0]]['ansible_host'] }}"
-    master_token: "{{ hostvars[groups['k3s_nodes'][0]]['k3s_token'] }}"
-    target_version: "{{ hostvars[groups['k3s_nodes'][0]]['k3s_version'] }}"
+    k3s_token: "{{ hostvars[groups['k3s_nodes'][0]]['k3s_token'] }}"
+    k3s_url: "https://{{ master_ip }}:6443"
+    k3s_agent_args: "--node-ip={{ ansible_host }} --node-external-ip={{ ansible_host }}"
 
   tasks:
     - name: Disable swap (k3s requirement)
@@ -34,6 +29,36 @@
       when: ansible_swaptotal_mb > 0
       ignore_errors: true
 
-    - name: Install k3s agent and join cluster (matching master version)
-      shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ target_version }} K3S_URL=https://{{ master_ip }}:6443 K3S_TOKEN={{ master_token }} sh -s - agent --node-ip={{ ansible_host }} --node-external-ip={{ ansible_host }}"
+    - name: Ensure /etc/rancher/k3s directory exists
+      file:
+        path: /etc/rancher/k3s
+        state: directory
+        mode: '0755'
+
+    - name: Configure k3s-agent proxy and credentials environment file
+      template:
+        src: k3s.service.env.j2
+        dest: /etc/systemd/system/k3s-agent.service.env
+        mode: '0600'
+      register: proxy_config
+
+    - name: Configure k3s container registries
+      template:
+        src: registries.yaml.j2
+        dest: /etc/rancher/k3s/registries.yaml
+        mode: '0644'
+      register: registry_config
+
+    - name: Install k3s agent and join cluster
+      shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} K3S_URL={{ k3s_url }} K3S_TOKEN={{ k3s_token }} sh -s - agent {{ k3s_agent_args }}"
+      environment: "{{ proxy_env }}"
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Restart k3s-agent if config changed
+      systemd:
+        name: k3s-agent
+        state: restarted
+        daemon_reload: true
+      when: proxy_config.changed or registry_config.changed
 
