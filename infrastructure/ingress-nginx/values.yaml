@@ -1,0 +1,10 @@
+ingress-nginx:
+  controller:
+    service:
+      type: ClusterIP  # We use Cloudflare Tunnel, so no LoadBalancer needed
+    metrics:
+      enabled: true
+    admissionWebhooks:
+      enabled: false  # Simplified for HomeLab, can enable later
+    nodeSelector:
+      kubernetes.io/hostname: "ubuntu-jammy"
