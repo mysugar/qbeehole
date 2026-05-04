@@ -37,4 +37,8 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller
 To achieve sub-second synchronization, configure a Git Webhook.
 1. Expose the `/api/webhook` endpoint of `argocd-server`.
 2. Configure the URL in GitHub/GitLab repository settings.
-3. Configure a Webhook Secret in Argo CD's `argocd-secret` for security.
+3. **Security**: Configure a Webhook Secret in Argo CD's `argocd-secret`:
+   ```bash
+   kubectl patch secret argocd-secret -n argocd -p '{"stringData": {"webhook.github.secret": "YOUR_SECRET"}}'
+   ```
+4. Add the same secret to the GitHub Webhook settings.
