@@ -8,4 +8,4 @@ service:
   port: 80
 ingress:
   enabled: true
-  host: beehole.example.com
+  host: beehole.want.trade
