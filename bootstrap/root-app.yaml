@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-username/qbeehole.git  # 用户需替换
+    repoURL: https://github.com/mysugar/qbeehole.git  # 用户需替换
     path: clusters/home-lab
     targetRevision: HEAD
   destination:

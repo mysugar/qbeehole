@@ -1,0 +1,46 @@
+---
+- name: Upgrade k3s Master Node
+  hosts: k3s_nodes
+  become: true
+  vars:
+    target_version: "v1.28.11+k3s2"
+    k3s_install_args: "--disable traefik"
+
+  tasks:
+    - name: Upgrade k3s master to {{ target_version }}
+      shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ target_version }} INSTALL_K3S_EXEC='server {{ k3s_install_args }}' sh -"
+
+    - name: Wait for k3s master to be Ready
+      delegate_to: localhost
+      become: false
+      command: kubectl get node build -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+      register: master_status
+      until: master_status.stdout == "True"
+      retries: 20
+      delay: 10
+
+- name: Upgrade k3s Worker Nodes
+  hosts: k3s_workers
+  become: true
+  vars:
+    target_version: "v1.28.11+k3s2"
+    master_ip: "{{ hostvars[groups['k3s_nodes'][0]]['ansible_host'] }}"
+    # We need to fetch the token again or ensure it's available
+  tasks:
+    - name: Get node-token from master
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: node_token_b64
+      delegate_to: "{{ groups['k3s_nodes'][0] }}"
+
+    - name: Upgrade k3s worker to {{ target_version }}
+      shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ target_version }} K3S_URL=https://{{ master_ip }}:6443 K3S_TOKEN={{ node_token_b64.content | b64decode | trim }} sh -"
+
+    - name: Wait for k3s worker to be Ready
+      delegate_to: localhost
+      become: false
+      command: kubectl get node ubuntu-jammy -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+      register: worker_status
+      until: worker_status.stdout == "True"
+      retries: 20
+      delay: 10
