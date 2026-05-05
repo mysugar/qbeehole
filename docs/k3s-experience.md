@@ -43,7 +43,19 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.28.11+k3s2 sh -
   - 参数: `--node-ip=<LAN_IP> --node-external-ip=<LAN_IP>`
 - **强制刷新**: 如果 IP 已经注册错误，需先 `kubectl delete node <NAME>`，然后在 Worker 上删除 `/var/lib/rancher/k3s/agent/node-config.yaml` 并重启服务。
 
-## 3. GitOps 兼容性
-- **Server-Side Apply**: 在较旧的 K8s 版本上，Argo CD 安装大型 CRD（如 ApplicationSet）可能会因为 Annotation 过大报错。
-  - 解决方法: 使用 `kubectl apply --server-side` 强制同步。
-- **现代版本优势**: 升级到 `v1.28+` 后，对现代云原生工具的 API 支持更好，减少了因 API 废弃导致的同步失败。
+## 4. 数据库与存储 (NAS 实践)
+
+### 4.1 SQLite on NFS 的坑
+- **现象**: Gitea 使用 SQLite 并将数据存在 NAS (NFS) 上时，频繁报错 `sql: database is closed`。
+- **原因**: SQLite 极度依赖文件锁 (File Locking)，而 NFS 对锁的支持较弱且极易产生冲突。
+- **解决方法**: **严禁在 NFS 上运行 SQLite**。建议部署轻量级的 MariaDB 或 PostgreSQL 容器作为后端。
+
+### 4.2 初次初始化超时问题
+- **现象**: Gitea 或类似应用在初次启动创建上百个数据库表时，在 NFS 环境下可能耗时超过 60s，导致 Ingress/Cloudflare 报 504 Timeout。
+- **解决方法**: 
+  - 临时/永久调大 Ingress 的超时参数：`nginx.ingress.kubernetes.io/proxy-read-timeout: "600"`。
+  - 即使前端超时，后端建表任务可能仍在进行，可通过 `show tables` 观察进度，切勿频繁重启 Pod 导致事务回滚。
+
+## 5. 私有化 GitOps 架构
+- **访问策略**: 采用 `LoadBalancer` 暴露 Ingress，并在内网通过 `/etc/hosts` 劫持域名（如 `git.want.trade`），实现不经过公网的私有代码提交。
+- **存储方案**: 通过 `nfs-common` 实现容器与 NAS 的打通，保证代码资产的物理安全性。
