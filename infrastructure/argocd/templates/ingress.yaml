@@ -8,6 +8,16 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   rules:
+  - host: argocd.want.trade
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd-server
+            port:
+              number: 443
   - host: argocd-webhook.want.trade
     http:
       paths:
