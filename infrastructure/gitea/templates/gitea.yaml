@@ -37,25 +37,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gitea-local
-  namespace: infrastructure
-spec:
-  type: NodePort
-  ports:
-  - port: 3000
-    targetPort: 3000
-    nodePort: 30080
-    name: http
-  - port: 2222
-    targetPort: 22
-    nodePort: 30022
-    name: ssh
-  selector:
-    app: gitea
----
-apiVersion: v1
-kind: Service
-metadata:
   name: gitea
   namespace: infrastructure
 spec:

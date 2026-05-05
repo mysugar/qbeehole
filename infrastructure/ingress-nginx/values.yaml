@@ -1,7 +1,7 @@
 ingress-nginx:
   controller:
     service:
-      type: ClusterIP  # We use Cloudflare Tunnel, so no LoadBalancer needed
+      type: LoadBalancer  # Allows local LAN access via Node IP
     metrics:
       enabled: true
     admissionWebhooks:
