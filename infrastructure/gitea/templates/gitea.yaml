@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+  namespace: infrastructure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+    spec:
+      containers:
+      - name: gitea
+        image: gitea/gitea:1.21.0
+        ports:
+        - containerPort: 3000
+          name: http
+        - containerPort: 22
+          name: ssh
+        env:
+        - name: GITEA__database__DB_TYPE
+          value: sqlite3
+        - name: GITEA__database__PATH
+          value: /data/gitea/gitea.db
+        volumeMounts:
+        - name: gitea-data
+          mountPath: /data
+      volumes:
+      - name: gitea-data
+        persistentVolumeClaim:
+          claimName: gitea-nas-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea-local
+  namespace: infrastructure
+spec:
+  type: NodePort
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 30080
+    name: http
+  - port: 2222
+    targetPort: 22
+    nodePort: 30022
+    name: ssh
+  selector:
+    app: gitea
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea
+  namespace: infrastructure
+spec:
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: http
+  - port: 2222
+    targetPort: 22
+    name: ssh
+  selector:
+    app: gitea
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea
+  namespace: infrastructure
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: git.want.trade
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gitea
+            port:
+              number: 3000
