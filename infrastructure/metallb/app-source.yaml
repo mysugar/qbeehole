@@ -1,0 +1,161 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{},"finalizers":["resources-finalizer.argocd.argoproj.io"],"labels":{"app.kubernetes.io/instance":"root"},"name":"metallb","namespace":"argocd"},"spec":{"destination":{"namespace":"metallb","server":"https://kubernetes.default.svc"},"project":"demo-iac","source":{"chart":"metallb","helm":{"values":"configInline:\n  address-pools:\n  - name: default\n    protocol: layer2\n    addresses:\n    - 192.168.0.91-192.168.0.91"},"repoURL":"https://metallb.github.io/metallb","targetRevision":"0.12.1"},"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true"]}}}
+  creationTimestamp: "2023-03-30T03:11:08Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 28842
+  labels:
+    app.kubernetes.io/instance: root
+  name: metallb
+  namespace: argocd
+  resourceVersion: "29157806"
+  uid: 1a4a9de9-4321-4f92-b2c8-8142a4d73d18
+spec:
+  destination:
+    namespace: metallb
+    server: https://kubernetes.default.svc
+  project: demo-iac
+  source:
+    chart: metallb
+    helm:
+      values: |-
+        configInline:
+          address-pools:
+          - name: default
+            protocol: layer2
+            addresses:
+            - 192.168.0.91-192.168.0.91
+    repoURL: https://metallb.github.io/metallb
+    targetRevision: 0.12.1
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+status:
+  conditions:
+  - lastTransitionTime: "2026-05-05T05:46:37Z"
+    message: 'Failed to load target state: failed to generate manifest for source
+      1 of 1: rpc error: code = Unavailable desc = connection error: desc = "transport:
+      authentication handshake failed: EOF"'
+    type: ComparisonError
+  controllerNamespace: argocd
+  health:
+    status: Healthy
+  history:
+  - deployStartedAt: "2023-03-30T03:11:08Z"
+    deployedAt: "2023-03-30T03:11:11Z"
+    id: 0
+    initiatedBy: {}
+    revision: 0.12.1
+    source:
+      chart: metallb
+      helm:
+        values: |-
+          configInline:
+            address-pools:
+            - name: default
+              protocol: layer2
+              addresses:
+              - 192.168.0.91-192.168.0.91
+      repoURL: https://metallb.github.io/metallb
+      targetRevision: 0.12.1
+  operationState:
+    finishedAt: "2026-05-04T10:02:06Z"
+    message: one or more synchronization tasks are not valid (retried 5 times).
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        autoHealAttemptsCount: 1
+        prune: true
+        resources:
+        - group: policy
+          kind: PodSecurityPolicy
+          name: metallb-speaker
+        - group: policy
+          kind: PodSecurityPolicy
+          name: metallb-controller
+        revision: 0.12.1
+        source:
+          chart: metallb
+          helm:
+            values: |-
+              configInline:
+                address-pools:
+                - name: default
+                  protocol: layer2
+                  addresses:
+                  - 192.168.0.91-192.168.0.91
+          repoURL: https://metallb.github.io/metallb
+          targetRevision: 0.12.1
+        syncOptions:
+        - CreateNamespace=true
+    phase: Failed
+    retryCount: 5
+    startedAt: "2026-05-04T09:56:55Z"
+    syncResult:
+      resources:
+      - group: policy
+        kind: PodSecurityPolicy
+        message: The Kubernetes API could not find policy/PodSecurityPolicy for requested
+          resource metallb/metallb-speaker. Make sure the "PodSecurityPolicy" CRD
+          is installed on the destination cluster.
+        name: metallb-speaker
+        namespace: metallb
+        status: SyncFailed
+        syncPhase: Sync
+        version: v1beta1
+      - group: policy
+        kind: PodSecurityPolicy
+        message: The Kubernetes API could not find policy/PodSecurityPolicy for requested
+          resource metallb/metallb-controller. Make sure the "PodSecurityPolicy" CRD
+          is installed on the destination cluster.
+        name: metallb-controller
+        namespace: metallb
+        status: SyncFailed
+        syncPhase: Sync
+        version: v1beta1
+      revision: 0.12.1
+      source:
+        chart: metallb
+        helm:
+          values: |-
+            configInline:
+              address-pools:
+              - name: default
+                protocol: layer2
+                addresses:
+                - 192.168.0.91-192.168.0.91
+        repoURL: https://metallb.github.io/metallb
+        targetRevision: 0.12.1
+  reconciledAt: "2026-05-05T07:10:33Z"
+  resourceHealthSource: appTree
+  sourceHydrator: {}
+  summary: {}
+  sync:
+    comparedTo:
+      destination:
+        namespace: metallb
+        server: https://kubernetes.default.svc
+      source:
+        chart: metallb
+        helm:
+          values: |-
+            configInline:
+              address-pools:
+              - name: default
+                protocol: layer2
+                addresses:
+                - 192.168.0.91-192.168.0.91
+        repoURL: https://metallb.github.io/metallb
+        targetRevision: 0.12.1
+    revision: 0.12.1
+    status: Unknown

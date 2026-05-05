@@ -1,0 +1,9 @@
+# MetalLB Configuration (Legacy ConfigMap mode for v0.12.1)
+# Note: In newer versions, this is done via CRDs (IPAddressPool/L2Advertisement)
+metallb:
+  configInline:
+    address-pools:
+      - name: default
+        protocol: layer2
+        addresses:
+          - 192.168.50.240-192.168.50.250
