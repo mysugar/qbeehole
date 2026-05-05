@@ -28,6 +28,7 @@
         regexp: '(archive|security)\.ubuntu\.com'
         replace: "{{ apt_mirror }}"
       when: ansible_os_family == "Debian"
+      tags: ["apt-mirror", "prep"]
 
     - name: Disable swap (k3s requirement)
       shell: |
@@ -35,6 +36,7 @@
         sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
       when: ansible_swaptotal_mb > 0
       ignore_errors: true
+      tags: ["prep", "system"]
 
     - name: Install NFS utilities
       apt:
@@ -42,12 +44,14 @@
         state: present
         update_cache: yes
       when: ansible_os_family == "Debian"
+      tags: ["nfs", "deps"]
 
     - name: Ensure /etc/rancher/k3s directory exists
       file:
         path: /etc/rancher/k3s
         state: directory
         mode: '0755'
+      tags: ["config"]
 
     - name: Configure k3s-agent proxy and credentials environment file
       template:
@@ -55,6 +59,7 @@
         dest: /etc/systemd/system/k3s-agent.service.env
         mode: '0600'
       register: proxy_config
+      tags: ["proxy", "config"]
 
     - name: Configure k3s container registries
       template:
@@ -62,12 +67,14 @@
         dest: /etc/rancher/k3s/registries.yaml
         mode: '0644'
       register: registry_config
+      tags: ["registry", "config"]
 
     - name: Install k3s agent and join cluster
       shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} K3S_URL={{ k3s_url }} K3S_TOKEN={{ k3s_token }} sh -s - agent {{ k3s_agent_args }}"
       environment: "{{ proxy_env }}"
       args:
         creates: /usr/local/bin/k3s
+      tags: ["k3s", "install"]
 
     - name: Restart k3s-agent if config changed
       systemd:
@@ -75,4 +82,5 @@
         state: restarted
         daemon_reload: true
       when: proxy_config.changed or registry_config.changed
+      tags: ["config", "service"]
 

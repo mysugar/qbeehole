@@ -6,6 +6,7 @@
 - **环境无关性 (Environment Agnostic)**: 核心逻辑应与具体 IP/密钥解耦，通过 `group_vars` 或 `Secret` 进行注入。
 
 ## 2. 基础设施自动化 (Ansible)
+- **编写规范**: 详见 [Ansible 自动化编写规范](ansible-standards.md)。
 - **Day 0 覆盖范围**: 包括 OS 调优 (Swap)、容器运行时配置 (Proxy/Mirrors)、K8s 核心组件安装。
 - **配置固化**:
   - 代理配置应写入 `/etc/systemd/system/k3s.service.env`。

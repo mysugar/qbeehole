@@ -14,6 +14,7 @@
         regexp: '(archive|security)\.ubuntu\.com'
         replace: "{{ apt_mirror }}"
       when: ansible_os_family == "Debian"
+      tags: ["apt-mirror", "prep"]
 
     - name: Disable swap (k3s requirement)
       shell: |
@@ -21,6 +22,7 @@
         sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
       when: ansible_swaptotal_mb > 0
       ignore_errors: true
+      tags: ["prep", "system"]
 
     - name: Install NFS utilities
       apt:
@@ -28,12 +30,14 @@
         state: present
         update_cache: yes
       when: ansible_os_family == "Debian"
+      tags: ["nfs", "deps"]
 
     - name: Ensure /etc/rancher/k3s directory exists
       file:
         path: /etc/rancher/k3s
         state: directory
         mode: '0755'
+      tags: ["config"]
 
     - name: Configure k3s proxy environment file
       template:
@@ -41,6 +45,7 @@
         dest: /etc/systemd/system/k3s.service.env
         mode: '0600'
       register: proxy_config
+      tags: ["proxy", "config"]
 
     - name: Configure k3s container registries
       template:
@@ -48,12 +53,14 @@
         dest: /etc/rancher/k3s/registries.yaml
         mode: '0644'
       register: registry_config
+      tags: ["registry", "config"]
 
     - name: Install k3s
       shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} INSTALL_K3S_EXEC='server {{ k3s_install_args }}' sh -"
       environment: "{{ proxy_env }}"
       args:
         creates: /usr/local/bin/k3s
+      tags: ["k3s", "install"]
 
     - name: Restart k3s if config changed
       systemd:
@@ -61,17 +68,20 @@
         state: restarted
         daemon_reload: true
       when: proxy_config.changed or registry_config.changed
+      tags: ["config", "service"]
 
     - name: Wait for k3s to be ready
       wait_for:
         path: /etc/rancher/k3s/k3s.yaml
         state: present
+      tags: ["install"]
 
     - name: Fetch kubeconfig to local Mac
       fetch:
         src: /etc/rancher/k3s/k3s.yaml
         dest: "{{ local_kubeconfig }}"
         flat: true
+      tags: ["kubeconfig"]
 
     - name: Update server address in local kubeconfig
       delegate_to: localhost
@@ -80,3 +90,4 @@
         path: "{{ local_kubeconfig }}"
         regexp: '127.0.0.1'
         replace: "{{ ansible_host }}"
+      tags: ["kubeconfig"]
