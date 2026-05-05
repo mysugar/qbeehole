@@ -8,6 +8,13 @@
     local_kubeconfig: "~/.kube/config"
 
   tasks:
+    - name: Switch to domestic APT mirror
+      replace:
+        path: /etc/apt/sources.list
+        regexp: '(archive|security)\.ubuntu\.com'
+        replace: "{{ apt_mirror }}"
+      when: ansible_os_family == "Debian"
+
     - name: Disable swap (k3s requirement)
       shell: |
         swapoff -a
