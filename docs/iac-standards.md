@@ -17,6 +17,13 @@
 - **变更即部署**: 任何对 `apps/` 或 `infrastructure/` 的 Git 推送应能自动触发集群更新。
 - **强制调度**: 在混合网络环境下（如 Master 无法拉取镜像），利用 `nodeSelector` 或 `Taints/Tolerations` 确保关键组件运行在健康的节点上。
 
-## 4. 敏感信息管理
-- **禁止入库**: 严禁将 Cloudflare Token、SSH 私钥等敏感信息提交至 Git。
-- **带外注入**: 使用 `kubectl create secret` 配合脚本或外部 Secret 管理器（如 External Secrets Operator）进行注入。
+## 5. Kubernetes 秘钥管理技巧 (Secrets)
+- **stringData vs data**: 
+  - `data`: 要求提供 Base64 编码后的字符串。手动编码容易出错（如多出换行符）。
+  - `stringData`: **推荐用法**。`kubectl` 会自动处理 Base64 编码过程。你可以直接写入明文字符串，集群会自动将其转换为 `data` 存储。
+- **命令行快速更新**:
+  使用 `kubectl patch` 配合 `stringData` 可以安全且快速地更新秘钥，无需先手动 `echo -n ... | base64`:
+  ```bash
+  kubectl patch secret <NAME> -n <NS> -p '{"stringData": {"key": "plain-text-secret"}}'
+  ```
+
