@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea-db
+  namespace: infrastructure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea-db
+  template:
+    metadata:
+      labels:
+        app: gitea-db
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.11
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: gitea_root_password
+        - name: MYSQL_USER
+          value: gitea
+        - name: MYSQL_PASSWORD
+          value: gitea_password
+        - name: MYSQL_DATABASE
+          value: gitea
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: db-data
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: db-data
+        persistentVolumeClaim:
+          claimName: gitea-db-nas-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea-db
+  namespace: infrastructure
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: gitea-db

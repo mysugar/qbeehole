@@ -23,9 +23,15 @@ spec:
           name: ssh
         env:
         - name: GITEA__database__DB_TYPE
-          value: sqlite3
-        - name: GITEA__database__PATH
-          value: /data/gitea/gitea.db
+          value: mysql
+        - name: GITEA__database__HOST
+          value: gitea-db:3306
+        - name: GITEA__database__NAME
+          value: gitea
+        - name: GITEA__database__USER
+          value: gitea
+        - name: GITEA__database__PASSWD
+          value: gitea_password
         volumeMounts:
         - name: gitea-data
           mountPath: /data
