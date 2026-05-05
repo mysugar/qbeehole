@@ -1,0 +1,24 @@
+replicaCount: 1
+
+image:
+  repository: nginx # 占位，用户后续改为真实的 Go 镜像地址
+  pullPolicy: IfNotPresent
+  tag: "latest" # 自动化脚本会修改这里
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080 # Go 应用通常监听 8080
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: golang-demo.want.trade
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
