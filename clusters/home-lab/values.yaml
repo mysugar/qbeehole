@@ -1,2 +1,2 @@
-repoURL: http://git.want.trade/mysugar2011/qbeehole.git
+repoURL: http://gitea.infrastructure.svc.cluster.local:3000/mysugar2011/qbeehole.git
 targetRevision: HEAD
