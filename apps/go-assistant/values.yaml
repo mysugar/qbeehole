@@ -1,0 +1,28 @@
+replicaCount: 1
+
+image:
+  repository: gitea-db:5000/mysugar2011/go-assistant # 假设后续部署 local registry
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8081
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: assistant.want.trade
+
+env:
+  KATAGO_SERVER_URL: "http://katago-service:8082"
+  NO_PROXY: "localhost,127.0.0.1"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
