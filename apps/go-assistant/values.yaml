@@ -18,6 +18,11 @@ ingress:
 env:
   KATAGO_SERVER_URL: "http://katago-service:8082"
   NO_PROXY: "localhost,127.0.0.1"
+  DB_HOST: "gitea-db.infrastructure.svc.cluster.local"
+  DB_PORT: "3306"
+  DB_USER: "gitea"
+  DB_PASSWORD: "gitea_password"
+  DB_NAME: "gitea" # 建议后续创建一个名为 go_assistant 的库
 
 resources:
   limits:
