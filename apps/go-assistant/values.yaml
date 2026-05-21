@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: your-docker-id/go-assistant # 请替换为您的 Docker Hub 用户名
+  repository: sugardocker/go-assistant
   pullPolicy: Always
   tag: "latest"
 
