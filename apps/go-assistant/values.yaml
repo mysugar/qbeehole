@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: gitea-db:5000/mysugar2011/go-assistant # 假设后续部署 local registry
-  pullPolicy: IfNotPresent
+  repository: your-docker-id/go-assistant # 请替换为您的 Docker Hub 用户名
+  pullPolicy: Always
   tag: "latest"
 
 service:
