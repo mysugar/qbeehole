@@ -41,6 +41,7 @@ metadata:
   name: gitea-db
   namespace: infrastructure
 spec:
+  type: LoadBalancer
   ports:
   - port: 3306
     targetPort: 3306
