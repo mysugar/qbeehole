@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: nginx # Placeholder
+  repository: sugardocker/handsnote-backend
   pullPolicy: IfNotPresent
   tag: "latest"
 
@@ -13,7 +13,7 @@ service:
 ingress:
   enabled: true
   className: "nginx"
-  host: hn.want.trade
+  host: handsnote.want.trade
 
 # 数据库配置 (沉淀为标准模式: 区分普通环境变量与敏感变量)
 db:
