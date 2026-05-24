@@ -1,0 +1,32 @@
+replicaCount: 1
+
+image:
+  repository: nginx # Placeholder
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: hn.want.trade
+
+# 数据库配置 (沉淀为标准模式: 区分普通环境变量与敏感变量)
+db:
+  host: "gitea-db.infrastructure.svc.cluster.local"
+  port: "3306"
+  name: "handsnote"
+  user: "handsnote_app"
+  password: "HandsNote@2026" # 敏感信息，通过 Secret 注入
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi

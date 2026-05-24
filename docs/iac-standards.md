@@ -18,7 +18,37 @@
 - **变更即部署**: 任何对 `apps/` 或 `infrastructure/` 的 Git 推送应能自动触发集群更新。
 - **强制调度**: 在混合网络环境下（如 Master 无法拉取镜像），利用 `nodeSelector` 或 `Taints/Tolerations` 确保关键组件运行在健康的节点上。
 
-## 5. Kubernetes 秘钥管理技巧 (Secrets)
+## 6. 应用环境变量管理规范
+为了保证应用的可移植性与安全性，建议遵循以下环境变量注入模式：
+
+### 6.1 分类注入模式 (Recommended)
+- **普通变量 (Config)**: 直接在 `values.yaml` 中定义，并通过 Deployment 的 `env` 列表注入。适用于 `DB_HOST`, `DB_PORT`, `LOG_LEVEL` 等非敏感信息。
+- **敏感变量 (Secrets)**:
+  1. 在 Helm Chart 中创建 `templates/secret.yaml`。
+  2. 使用 `stringData` 将 `values.yaml` 中的明文（或通过外部注入的变量）转换为 Secret。
+  3. 在 Deployment 中通过 `valueFrom.secretKeyRef` 引用。适用于密码、API Token 等。
+
+### 6.2 示例结构
+**values.yaml**:
+```yaml
+db:
+  host: "db-service"
+  password: "secure-password" # 仅在私有库或通过 CI 注入时保留
+```
+
+**Deployment**:
+```yaml
+env:
+  - name: DB_HOST
+    value: {{ .Values.db.host }}
+  - name: DB_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: {{ .Chart.Name }}-secret
+        key: DB_PASSWORD
+```
+
+## 7. Kubernetes 秘钥管理技巧 (Secrets)
 - **stringData vs data**: 
   - `data`: 要求提供 Base64 编码后的字符串。手动编码容易出错（如多出换行符）。
   - `stringData`: **推荐用法**。`kubectl` 会自动处理 Base64 编码过程。你可以直接写入明文字符串，集群会自动将其转换为 `data` 存储。
