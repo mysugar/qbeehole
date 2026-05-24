@@ -46,7 +46,7 @@ spec:
                   key: DB_PASSWORD
           volumeMounts:
             - name: env-file
-              mountPath: /app/.env
+              mountPath: /root/.env
               subPath: .env
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
