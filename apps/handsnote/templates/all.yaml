@@ -31,8 +31,19 @@ spec:
                 secretKeyRef:
                   name: {{ .Chart.Name }}-secret
                   key: DB_PASSWORD
+          volumeMounts:
+            - name: env-file
+              mountPath: /app/.env
+              subPath: .env
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: env-file
+          secret:
+            secretName: {{ .Chart.Name }}-secret
+            items:
+              - key: dotEnv
+                path: .env
 ---
 apiVersion: v1
 kind: Service
