@@ -44,19 +44,9 @@ spec:
                 secretKeyRef:
                   name: {{ .Chart.Name }}-secret
                   key: DB_PASSWORD
-          volumeMounts:
-            - name: env-file
-              mountPath: /root/.env
-              subPath: .env
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      volumes:
-        - name: env-file
-          secret:
-            secretName: {{ .Chart.Name }}-secret
-            items:
-              - key: dotEnv
-                path: .env
+      # 移除 .env 文件挂载，测试纯环境变量模式
 ---
 apiVersion: v1
 kind: Service
