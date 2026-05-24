@@ -26,7 +26,7 @@ spec:
               value: {{ .Values.db.name | quote }}
             - name: DB_USER
               value: {{ .Values.db.user | quote }}
-            - name: DB_PASSWORD
+            - name: DB_PASS
               valueFrom:
                 secretKeyRef:
                   name: {{ .Chart.Name }}-secret
