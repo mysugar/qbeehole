@@ -1,0 +1,354 @@
+{{- $name := .Chart.Name -}}
+{{- $labels := dict "app" $name -}}
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}-home
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistence.home.size }}
+  {{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}-agent-src
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistence.agentSrc.size }}
+  {{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}-workspace
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistence.workspace.size }}
+  {{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName | quote }}
+  {{- end }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- toYaml $labels | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- toYaml $labels | nindent 8 }}
+    spec:
+      initContainers:
+        - name: init-copy-hermes-src
+          image: "{{ .Values.image.agent.repository }}:{{ .Values.image.agent.tag }}"
+          imagePullPolicy: {{ .Values.image.agent.pullPolicy }}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              if [ ! -s /mnt/hermes-src/docker/entrypoint.sh ]; then
+                cp -a /opt/hermes/. /mnt/hermes-src/
+              fi
+              mkdir -p /mnt/hermes-home /mnt/hermes-workspace
+              chown -R {{ .Values.env.uid }}:{{ .Values.env.gid }} /mnt/hermes-home /mnt/hermes-workspace
+              chmod -R u+rwX,g+rwX /mnt/hermes-home /mnt/hermes-workspace
+          resources:
+            {{- toYaml .Values.resources.init | nindent 12 }}
+          volumeMounts:
+            - name: hermes-home
+              mountPath: /mnt/hermes-home
+            - name: hermes-agent-src
+              mountPath: /mnt/hermes-src
+            - name: hermes-workspace
+              mountPath: /mnt/hermes-workspace
+      containers:
+        - name: hermes-agent
+          image: "{{ .Values.image.agent.repository }}:{{ .Values.image.agent.tag }}"
+          imagePullPolicy: {{ .Values.image.agent.pullPolicy }}
+          args:
+            - gateway
+            - run
+          ports:
+            - name: agent-http
+              containerPort: {{ .Values.service.agent.port }}
+          env:
+            - name: HERMES_HOME
+              value: /opt/data
+            - name: HERMES_CONFIG_PATH
+              value: /opt/data/config.yaml
+            - name: HERMES_UID
+              value: {{ .Values.env.uid | quote }}
+            - name: HERMES_GID
+              value: {{ .Values.env.gid | quote }}
+            - name: GATEWAY_ALLOW_ALL_USERS
+              value: {{ .Values.env.allowAllUsers | quote }}
+            - name: BROWSER_CDP_URL
+              value: {{ .Values.env.chromeCdpUrl | quote }}
+            - name: CHROME_CDP_URL
+              value: {{ .Values.env.chromeCdpUrl | quote }}
+          resources:
+            {{- toYaml .Values.resources.agent | nindent 12 }}
+          volumeMounts:
+            - name: hermes-home
+              mountPath: /opt/data
+            - name: hermes-agent-src
+              mountPath: /opt/hermes
+        - name: chrome
+          image: "{{ .Values.image.chrome.repository }}:{{ .Values.image.chrome.tag }}"
+          imagePullPolicy: {{ .Values.image.chrome.pullPolicy }}
+          ports:
+            - name: chrome-cdp
+              containerPort: {{ .Values.service.chrome.port }}
+          env:
+            - name: PORT
+              value: {{ .Values.service.chrome.port | quote }}
+            - name: CONNECTION_TIMEOUT
+              value: "600000"
+            - name: MAX_CONCURRENT_SESSIONS
+              value: "5"
+          readinessProbe:
+            httpGet:
+              path: /json/version
+              port: chrome-cdp
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /json/version
+              port: chrome-cdp
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources.chrome | nindent 12 }}
+        - name: hermes-dashboard
+          image: "{{ .Values.image.agent.repository }}:{{ .Values.image.agent.tag }}"
+          imagePullPolicy: {{ .Values.image.agent.pullPolicy }}
+          args:
+            - dashboard
+            - --host
+            - 0.0.0.0
+            - --insecure
+          ports:
+            - name: dashboard-http
+              containerPort: {{ .Values.service.dashboard.port }}
+          env:
+            - name: HERMES_HOME
+              value: /opt/data
+            - name: HERMES_CONFIG_PATH
+              value: /opt/data/config.yaml
+            - name: HERMES_UID
+              value: {{ .Values.env.uid | quote }}
+            - name: HERMES_GID
+              value: {{ .Values.env.gid | quote }}
+            - name: GATEWAY_HEALTH_URL
+              value: "http://{{ $name }}-agent.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.agent.port }}"
+            - name: GATEWAY_ALLOW_ALL_USERS
+              value: {{ .Values.env.allowAllUsers | quote }}
+            - name: BROWSER_CDP_URL
+              value: {{ .Values.env.chromeCdpUrl | quote }}
+          resources:
+            {{- toYaml .Values.resources.dashboard | nindent 12 }}
+          volumeMounts:
+            - name: hermes-home
+              mountPath: /opt/data
+        - name: hermes-webui
+          image: "{{ .Values.image.webui.repository }}:{{ .Values.image.webui.tag }}"
+          imagePullPolicy: {{ .Values.image.webui.pullPolicy }}
+          ports:
+            - name: webui-http
+              containerPort: {{ .Values.service.webui.port }}
+          env:
+            - name: HERMES_HOME
+              value: /home/hermeswebui/.hermes
+            - name: HERMES_CONFIG_PATH
+              value: /home/hermeswebui/.hermes/config.yaml
+            - name: HERMES_WEBUI_HOST
+              value: "0.0.0.0"
+            - name: HERMES_WEBUI_PORT
+              value: {{ .Values.service.webui.port | quote }}
+            - name: HERMES_WEBUI_STATE_DIR
+              value: /home/hermeswebui/.hermes/webui
+            - name: HERMES_WEBUI_DEFAULT_WORKSPACE
+              value: {{ .Values.env.webuiDefaultWorkspace | quote }}
+            - name: BROWSER_CDP_URL
+              value: {{ .Values.env.chromeCdpUrl | quote }}
+            - name: CHROME_CDP_URL
+              value: {{ .Values.env.chromeCdpUrl | quote }}
+            - name: WANTED_UID
+              value: {{ .Values.env.uid | quote }}
+            - name: WANTED_GID
+              value: {{ .Values.env.gid | quote }}
+          resources:
+            {{- toYaml .Values.resources.webui | nindent 12 }}
+          volumeMounts:
+            - name: hermes-home
+              mountPath: /home/hermeswebui/.hermes
+            - name: hermes-agent-src
+              mountPath: /home/hermeswebui/.hermes/hermes-agent
+            - name: hermes-workspace
+              mountPath: /workspace
+      volumes:
+        - name: hermes-home
+          persistentVolumeClaim:
+            claimName: {{ $name }}-home
+        - name: hermes-agent-src
+          persistentVolumeClaim:
+            claimName: {{ $name }}-agent-src
+        - name: hermes-workspace
+          persistentVolumeClaim:
+            claimName: {{ $name }}-workspace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-agent
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- toYaml $labels | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.agent.port }}
+      targetPort: agent-http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-dashboard
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- toYaml $labels | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.dashboard.port }}
+      targetPort: dashboard-http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-webui
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- toYaml $labels | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.webui.port }}
+      targetPort: webui-http
+{{- if .Values.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name }}-webui
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.webui.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $name }}-webui
+                port:
+                  number: {{ .Values.service.webui.port }}
+{{- if .Values.ingress.dashboard.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name }}-dashboard
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.dashboard.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $name }}-dashboard
+                port:
+                  number: {{ .Values.service.dashboard.port }}
+{{- end }}
+{{- if .Values.ingress.agent.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name }}-agent
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.agent.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $name }}-agent
+                port:
+                  number: {{ .Values.service.agent.port }}
+{{- end }}
+{{- end }}

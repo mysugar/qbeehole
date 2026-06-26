@@ -1,0 +1,95 @@
+replicaCount: 1
+
+image:
+  agent:
+    repository: nousresearch/hermes-agent
+    tag: latest
+    pullPolicy: IfNotPresent
+  webui:
+    # Upstream hermes-k8s uses hermes-webui-prebuilt:local. Use a registry image
+    # in GitOps so every k3s node can pull it without manual image import.
+    repository: ghcr.io/nesquena/hermes-webui
+    tag: "0.50.236"
+    pullPolicy: IfNotPresent
+  chrome:
+    repository: browserless/chrome
+    tag: latest
+    pullPolicy: IfNotPresent
+
+persistence:
+  enabled: true
+  storageClassName: ""
+  home:
+    size: 5Gi
+  agentSrc:
+    size: 5Gi
+  workspace:
+    size: 20Gi
+
+service:
+  type: ClusterIP
+  agent:
+    port: 8642
+  dashboard:
+    port: 9119
+  webui:
+    port: 8787
+  chrome:
+    port: 9222
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  webui:
+    host: hermes.want.trade
+  dashboard:
+    enabled: true
+    host: hermes-dashboard.want.trade
+  agent:
+    enabled: false
+    host: hermes-agent.want.trade
+
+env:
+  uid: "10000"
+  gid: "10000"
+  allowAllUsers: "true"
+  chromeCdpUrl: "http://127.0.0.1:9222"
+  webuiDefaultWorkspace: /workspace
+
+resources:
+  init:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+  agent:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1536Mi
+  chrome:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  dashboard:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+  webui:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
