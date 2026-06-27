@@ -5,7 +5,7 @@ k3s_version: "v1.28.11+k3s2"
 proxy_env:
   HTTP_PROXY: "http://192.168.50.207:7897"
   HTTPS_PROXY: "http://192.168.50.207:7897"
-  NO_PROXY: "127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,10.42.0.0/16,10.43.0.0/16,localhost,*.local"
+  NO_PROXY: "127.0.0.1,localhost,192.168.50.181,192.168.50.51,127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,10.42.0.0/16,10.43.0.0/16,*.local"
 
 # APT Mirror
 apt_mirror: "mirrors.tuna.tsinghua.edu.cn"
