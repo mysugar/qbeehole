@@ -86,6 +86,9 @@ spec:
               mkdir -p /mnt/hermes-home /mnt/hermes-workspace
               chown -R {{ .Values.env.uid }}:{{ .Values.env.gid }} /mnt/hermes-home /mnt/hermes-workspace
               chmod -R u+rwX,g+rwX /mnt/hermes-home /mnt/hermes-workspace
+              if ! grep -q '^dashboard:' /mnt/hermes-home/config.yaml; then
+                printf '\n# Dashboard auth\ndashboard:\n  basic_auth:\n    username: %s\n    password_hash: %s\n' "{{ .Values.dashboardAuth.username }}" "{{ .Values.dashboardAuth.passwordHash }}" >> /mnt/hermes-home/config.yaml
+              fi
           resources:
             {{- toYaml .Values.resources.init | nindent 12 }}
           volumeMounts:
