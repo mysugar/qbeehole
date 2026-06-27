@@ -47,7 +47,7 @@ ingress:
     enabled: true
     host: hermes-dashboard.want.trade
   agent:
-    enabled: false
+    enabled: true
     host: hermes-agent.want.trade
 
 env:
@@ -64,36 +64,36 @@ dashboardAuth:
 resources:
   init:
     requests:
-      cpu: 10m
-      memory: 64Mi
+      cpu: 25m
+      memory: 128Mi
     limits:
-      cpu: 100m
+      cpu: 200m
       memory: 256Mi
   agent:
     requests:
-      cpu: 50m
+      cpu: 100m
       memory: 512Mi
     limits:
-      cpu: 500m
-      memory: 1536Mi
+      cpu: 750m
+      memory: 1Gi
   chrome:
     requests:
-      cpu: 50m
-      memory: 256Mi
+      cpu: 100m
+      memory: 512Mi
     limits:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 1
+      memory: 1536Mi
   dashboard:
     requests:
-      cpu: 10m
-      memory: 64Mi
-    limits:
-      cpu: 100m
-      memory: 256Mi
-  webui:
-    requests:
       cpu: 50m
-      memory: 256Mi
+      memory: 128Mi
     limits:
       cpu: 300m
+      memory: 384Mi
+  webui:
+    requests:
+      cpu: 100m
       memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 768Mi
