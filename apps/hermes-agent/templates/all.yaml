@@ -33,31 +33,14 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ $name }}-agent-src-nas-pvc
+  name: {{ $name }}-agent-src-pvc
   namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: {{ .Values.persistence.agentSrc.size }}
-  volumeName: {{ $name }}-agent-src-nas-pv
-  storageClassName: ""
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: {{ $name }}-agent-src-nas-pv
-spec:
-  capacity:
-    storage: {{ .Values.persistence.agentSrc.size }}
-  accessModes:
-    - ReadWriteMany
-  nfs:
-    server: {{ .Values.persistence.nfs.server }}
-    path: {{ .Values.persistence.nfs.agentSrcPath }}
-  mountOptions:
-    - nfsvers=4.1
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -273,7 +256,7 @@ spec:
             claimName: {{ $name }}-home-nas-pvc
         - name: hermes-agent-src
           persistentVolumeClaim:
-            claimName: {{ $name }}-agent-src-nas-pvc
+            claimName: {{ $name }}-agent-src-pvc
         - name: hermes-workspace
           persistentVolumeClaim:
             claimName: {{ $name }}-workspace-nas-pvc
