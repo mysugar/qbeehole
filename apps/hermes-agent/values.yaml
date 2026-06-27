@@ -44,10 +44,10 @@ ingress:
   webui:
     host: hermes.want.trade
   dashboard:
-    enabled: true
+    enabled: false
     host: hermes-dashboard.want.trade
   agent:
-    enabled: true
+    enabled: false
     host: hermes-agent.want.trade
 
 env:
