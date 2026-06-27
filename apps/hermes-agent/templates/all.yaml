@@ -4,50 +4,89 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ $name }}-home
-  labels:
-    {{- toYaml $labels | nindent 4 }}
+  name: {{ $name }}-home-nas-pvc
+  namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: {{ .Values.persistence.home.size }}
-  {{- if .Values.persistence.storageClassName }}
-  storageClassName: {{ .Values.persistence.storageClassName | quote }}
-  {{- end }}
+  volumeName: {{ $name }}-home-nas-pv
+  storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $name }}-home-nas-pv
+spec:
+  capacity:
+    storage: {{ .Values.persistence.home.size }}
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: {{ .Values.persistence.nfs.server }}
+    path: {{ .Values.persistence.nfs.homePath }}
+  mountOptions:
+    - nfsvers=4.1
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ $name }}-agent-src
-  labels:
-    {{- toYaml $labels | nindent 4 }}
+  name: {{ $name }}-agent-src-nas-pvc
+  namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: {{ .Values.persistence.agentSrc.size }}
-  {{- if .Values.persistence.storageClassName }}
-  storageClassName: {{ .Values.persistence.storageClassName | quote }}
-  {{- end }}
+  volumeName: {{ $name }}-agent-src-nas-pv
+  storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $name }}-agent-src-nas-pv
+spec:
+  capacity:
+    storage: {{ .Values.persistence.agentSrc.size }}
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: {{ .Values.persistence.nfs.server }}
+    path: {{ .Values.persistence.nfs.agentSrcPath }}
+  mountOptions:
+    - nfsvers=4.1
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ $name }}-workspace
-  labels:
-    {{- toYaml $labels | nindent 4 }}
+  name: {{ $name }}-workspace-nas-pvc
+  namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: {{ .Values.persistence.workspace.size }}
-  {{- if .Values.persistence.storageClassName }}
-  storageClassName: {{ .Values.persistence.storageClassName | quote }}
-  {{- end }}
+  volumeName: {{ $name }}-workspace-nas-pv
+  storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $name }}-workspace-nas-pv
+spec:
+  capacity:
+    storage: {{ .Values.persistence.workspace.size }}
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: {{ .Values.persistence.nfs.server }}
+    path: {{ .Values.persistence.nfs.workspacePath }}
+  mountOptions:
+    - nfsvers=4.1
 ---
 {{- end }}
 apiVersion: apps/v1
@@ -231,13 +270,13 @@ spec:
       volumes:
         - name: hermes-home
           persistentVolumeClaim:
-            claimName: {{ $name }}-home
+            claimName: {{ $name }}-home-nas-pvc
         - name: hermes-agent-src
           persistentVolumeClaim:
-            claimName: {{ $name }}-agent-src
+            claimName: {{ $name }}-agent-src-nas-pvc
         - name: hermes-workspace
           persistentVolumeClaim:
-            claimName: {{ $name }}-workspace
+            claimName: {{ $name }}-workspace-nas-pvc
 ---
 apiVersion: v1
 kind: Service
