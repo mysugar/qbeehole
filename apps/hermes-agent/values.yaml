@@ -82,6 +82,9 @@ ssh:
   publicKeys:
     - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAU8hl/JYHPmB4VVlkB4h1xOOYznTJbLvKTYv2ALzvJ3 zhenzhiw@2025.2.11"
 
+nodeSelector:
+  kubernetes.io/hostname: build
+
 resources:
   init:
     requests:
