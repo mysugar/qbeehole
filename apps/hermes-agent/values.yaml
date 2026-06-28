@@ -46,8 +46,9 @@ service:
   chrome:
     port: 9222
   ssh:
-    type: LoadBalancer
+    type: NodePort
     port: 2222
+    nodePort: 32222
 
 ingress:
   enabled: true

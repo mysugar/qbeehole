@@ -429,6 +429,9 @@ spec:
     - name: ssh
       port: {{ .Values.service.ssh.port }}
       targetPort: ssh
+      {{- if .Values.service.ssh.nodePort }}
+      nodePort: {{ .Values.service.ssh.nodePort }}
+      {{- end }}
 {{- end }}
 ---
 apiVersion: v1
