@@ -72,6 +72,20 @@ spec:
     - nfsvers=4.1
 ---
 {{- end }}
+{{- if .Values.ssh.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}-ssh-config-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -343,6 +357,32 @@ spec:
               mountPath: /home/hermeswebui/.hermes/hermes-agent
             - name: hermes-workspace
               mountPath: /workspace
+{{- if .Values.ssh.enabled }}
+        - name: hermes-ssh
+          image: "{{ .Values.image.ssh.repository }}:{{ .Values.image.ssh.tag }}"
+          imagePullPolicy: {{ .Values.image.ssh.pullPolicy }}
+          ports:
+            - name: ssh
+              containerPort: {{ .Values.service.ssh.port }}
+          env:
+            - name: PUID
+              value: {{ .Values.env.uid | quote }}
+            - name: PGID
+              value: {{ .Values.env.gid | quote }}
+            - name: USER_NAME
+              value: {{ .Values.ssh.user | quote }}
+            - name: PASSWORD_ACCESS
+              value: "false"
+            - name: SUDO_ACCESS
+              value: "false"
+            - name: PUBLIC_KEY
+              value: {{ join "\n" .Values.ssh.publicKeys | quote }}
+          resources:
+            {{- toYaml .Values.resources.ssh | nindent 12 }}
+          volumeMounts:
+            - name: hermes-ssh-config
+              mountPath: /config
+{{- end }}
       volumes:
         - name: hermes-home
           persistentVolumeClaim:
@@ -353,6 +393,11 @@ spec:
         - name: hermes-workspace
           persistentVolumeClaim:
             claimName: {{ $name }}-workspace-nas-pvc
+{{- if .Values.ssh.enabled }}
+        - name: hermes-ssh-config
+          persistentVolumeClaim:
+            claimName: {{ $name }}-ssh-config-pvc
+{{- end }}
 ---
 apiVersion: v1
 kind: Service
@@ -368,6 +413,23 @@ spec:
     - name: http
       port: {{ .Values.service.agent.port }}
       targetPort: agent-http
+{{- if .Values.ssh.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-ssh
+  labels:
+    {{- toYaml $labels | nindent 4 }}
+spec:
+  type: {{ .Values.service.ssh.type }}
+  selector:
+    {{- toYaml $labels | nindent 4 }}
+  ports:
+    - name: ssh
+      port: {{ .Values.service.ssh.port }}
+      targetPort: ssh
+{{- end }}
 ---
 apiVersion: v1
 kind: Service

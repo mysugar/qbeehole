@@ -15,6 +15,10 @@ image:
     repository: browserless/chrome
     tag: latest
     pullPolicy: IfNotPresent
+  ssh:
+    repository: lscr.io/linuxserver/openssh-server
+    tag: latest
+    pullPolicy: IfNotPresent
 
 persistence:
   enabled: true
@@ -41,6 +45,9 @@ service:
     port: 8787
   chrome:
     port: 9222
+  ssh:
+    type: LoadBalancer
+    port: 2222
 
 ingress:
   enabled: true
@@ -67,6 +74,12 @@ proxy:
   httpsProxy: "http://192.168.50.207:7897"
   noProxy: "127.0.0.1,localhost,192.168.50.181,192.168.50.51,192.168.50.143,192.168.50.144,10.0.0.0/8,192.168.0.0/16,10.42.0.0/16,10.43.0.0/16,*.local"
   allProxy: ""
+
+ssh:
+  enabled: true
+  user: hermes
+  publicKeys:
+    - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAU8hl/JYHPmB4VVlkB4h1xOOYznTJbLvKTYv2ALzvJ3 zhenzhiw@2025.2.11"
 
 resources:
   init:
@@ -104,3 +117,10 @@ resources:
     limits:
       cpu: 1500m
       memory: 2304Mi
+  ssh:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
