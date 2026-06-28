@@ -142,6 +142,30 @@ spec:
               value: {{ .Values.env.chromeCdpUrl | quote }}
             - name: CHROME_CDP_URL
               value: {{ .Values.env.chromeCdpUrl | quote }}
+            {{- if .Values.proxy.httpProxy }}
+            - name: HTTP_PROXY
+              value: {{ .Values.proxy.httpProxy | quote }}
+            - name: http_proxy
+              value: {{ .Values.proxy.httpProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.httpsProxy }}
+            - name: HTTPS_PROXY
+              value: {{ .Values.proxy.httpsProxy | quote }}
+            - name: https_proxy
+              value: {{ .Values.proxy.httpsProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.noProxy }}
+            - name: NO_PROXY
+              value: {{ .Values.proxy.noProxy | quote }}
+            - name: no_proxy
+              value: {{ .Values.proxy.noProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.allProxy }}
+            - name: ALL_PROXY
+              value: {{ .Values.proxy.allProxy | quote }}
+            - name: all_proxy
+              value: {{ .Values.proxy.allProxy | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources.agent | nindent 12 }}
           volumeMounts:
@@ -162,6 +186,30 @@ spec:
               value: "600000"
             - name: MAX_CONCURRENT_SESSIONS
               value: "5"
+            {{- if .Values.proxy.httpProxy }}
+            - name: HTTP_PROXY
+              value: {{ .Values.proxy.httpProxy | quote }}
+            - name: http_proxy
+              value: {{ .Values.proxy.httpProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.httpsProxy }}
+            - name: HTTPS_PROXY
+              value: {{ .Values.proxy.httpsProxy | quote }}
+            - name: https_proxy
+              value: {{ .Values.proxy.httpsProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.noProxy }}
+            - name: NO_PROXY
+              value: {{ .Values.proxy.noProxy | quote }}
+            - name: no_proxy
+              value: {{ .Values.proxy.noProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.allProxy }}
+            - name: ALL_PROXY
+              value: {{ .Values.proxy.allProxy | quote }}
+            - name: all_proxy
+              value: {{ .Values.proxy.allProxy | quote }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /json/version
@@ -206,6 +254,30 @@ spec:
               value: {{ .Values.env.allowAllUsers | quote }}
             - name: BROWSER_CDP_URL
               value: {{ .Values.env.chromeCdpUrl | quote }}
+            {{- if .Values.proxy.httpProxy }}
+            - name: HTTP_PROXY
+              value: {{ .Values.proxy.httpProxy | quote }}
+            - name: http_proxy
+              value: {{ .Values.proxy.httpProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.httpsProxy }}
+            - name: HTTPS_PROXY
+              value: {{ .Values.proxy.httpsProxy | quote }}
+            - name: https_proxy
+              value: {{ .Values.proxy.httpsProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.noProxy }}
+            - name: NO_PROXY
+              value: {{ .Values.proxy.noProxy | quote }}
+            - name: no_proxy
+              value: {{ .Values.proxy.noProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.allProxy }}
+            - name: ALL_PROXY
+              value: {{ .Values.proxy.allProxy | quote }}
+            - name: all_proxy
+              value: {{ .Values.proxy.allProxy | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources.dashboard | nindent 12 }}
           volumeMounts:
@@ -238,6 +310,30 @@ spec:
               value: {{ .Values.env.uid | quote }}
             - name: WANTED_GID
               value: {{ .Values.env.gid | quote }}
+            {{- if .Values.proxy.httpProxy }}
+            - name: HTTP_PROXY
+              value: {{ .Values.proxy.httpProxy | quote }}
+            - name: http_proxy
+              value: {{ .Values.proxy.httpProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.httpsProxy }}
+            - name: HTTPS_PROXY
+              value: {{ .Values.proxy.httpsProxy | quote }}
+            - name: https_proxy
+              value: {{ .Values.proxy.httpsProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.noProxy }}
+            - name: NO_PROXY
+              value: {{ .Values.proxy.noProxy | quote }}
+            - name: no_proxy
+              value: {{ .Values.proxy.noProxy | quote }}
+            {{- end }}
+            {{- if .Values.proxy.allProxy }}
+            - name: ALL_PROXY
+              value: {{ .Values.proxy.allProxy | quote }}
+            - name: all_proxy
+              value: {{ .Values.proxy.allProxy | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources.webui | nindent 12 }}
           volumeMounts:
