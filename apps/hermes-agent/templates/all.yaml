@@ -198,6 +198,16 @@ spec:
               value: {{ .Values.env.chromeCdpUrl | quote }}
             - name: CHROME_CDP_URL
               value: {{ .Values.env.chromeCdpUrl | quote }}
+            - name: API_SERVER_ENABLED
+              value: {{ .Values.env.apiServerEnabled | quote }}
+            - name: API_SERVER_HOST
+              value: {{ .Values.env.apiServerHost | quote }}
+            - name: API_SERVER_PORT
+              value: {{ .Values.env.apiServerPort | quote }}
+            - name: API_SERVER_MODEL_NAME
+              value: {{ .Values.env.apiServerModelName | quote }}
+            - name: API_SERVER_KEY
+              value: {{ .Values.env.apiServerKey | quote }}
             {{- if .Values.proxy.httpProxy }}
             - name: HTTP_PROXY
               value: {{ .Values.proxy.httpProxy | quote }}

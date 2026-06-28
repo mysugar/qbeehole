@@ -69,6 +69,11 @@ env:
   allowAllUsers: "true"
   chromeCdpUrl: "http://127.0.0.1:9222"
   webuiDefaultWorkspace: /workspace
+  apiServerEnabled: "true"
+  apiServerHost: "127.0.0.1"
+  apiServerPort: "8642"
+  apiServerModelName: "Hermes Agent"
+  apiServerKey: "HermesApiKey@2026"
 
 proxy:
   httpProxy: "http://192.168.50.207:7897"
