@@ -62,10 +62,6 @@ env:
   chromeCdpUrl: "http://127.0.0.1:9222"
   webuiDefaultWorkspace: /workspace
 
-dashboardAuth:
-  username: admin
-  passwordHash: scrypt$16384$8$1$ggV8Ym6EMQRkyzoeZaD1qA==$yhf930bCrZ/HN2J3FdgHWQQt2XoFJ5TYpD5RoJfpfV0=
-
 resources:
   init:
     requests:
