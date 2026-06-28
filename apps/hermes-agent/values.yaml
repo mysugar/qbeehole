@@ -65,36 +65,36 @@ env:
 resources:
   init:
     requests:
-      cpu: 25m
-      memory: 128Mi
+      cpu: 75m
+      memory: 384Mi
     limits:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 600m
+      memory: 768Mi
   agent:
     requests:
-      cpu: 100m
-      memory: 512Mi
+      cpu: 300m
+      memory: 1536Mi
     limits:
-      cpu: 750m
-      memory: 1Gi
+      cpu: 2250m
+      memory: 3Gi
   chrome:
     requests:
-      cpu: 100m
-      memory: 512Mi
-    limits:
-      cpu: 1
+      cpu: 300m
       memory: 1536Mi
+    limits:
+      cpu: 3
+      memory: 4608Mi
   dashboard:
     requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      cpu: 300m
+      cpu: 150m
       memory: 384Mi
+    limits:
+      cpu: 900m
+      memory: 1152Mi
   webui:
     requests:
-      cpu: 100m
-      memory: 512Mi
+      cpu: 300m
+      memory: 1536Mi
     limits:
-      cpu: 500m
-      memory: 768Mi
+      cpu: 1500m
+      memory: 2304Mi
