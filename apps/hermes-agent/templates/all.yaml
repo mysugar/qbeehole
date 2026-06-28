@@ -171,6 +171,7 @@ spec:
               if ! id -u {{ .Values.ssh.user }} >/dev/null 2>&1; then
                 useradd -m -u {{ .Values.env.uid }} -g {{ .Values.env.gid }} -s /bin/sh {{ .Values.ssh.user }}
               fi
+              passwd -d {{ .Values.ssh.user }} >/dev/null 2>&1 || true
               chown -R {{ .Values.env.uid }}:{{ .Values.env.gid }} /config
               ssh-keygen -A
               /usr/sbin/sshd -D -e -p {{ .Values.service.ssh.port }} -o PidFile=/tmp/sshd.pid -o PasswordAuthentication=no -o PubkeyAuthentication=yes -o AuthorizedKeysFile=/config/.ssh/authorized_keys -o PermitRootLogin=no -o AllowUsers={{ .Values.ssh.user }} -o UsePAM=no &
