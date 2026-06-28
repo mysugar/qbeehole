@@ -52,6 +52,10 @@ ingress:
   annotations: {}
   webui:
     host: hermes.want.trade
+    auth:
+      enabled: true
+      username: hermes
+      password: "HermesWebUI@2026"
   dashboard:
     enabled: true
     host: hermes-dashboard.want.trade
