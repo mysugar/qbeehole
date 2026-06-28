@@ -104,10 +104,6 @@ spec:
       labels:
         {{- toYaml $labels | nindent 8 }}
     spec:
-      {{- if .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
-      {{- end }}
       initContainers:
         - name: init-copy-hermes-src
           image: "{{ .Values.image.agent.repository }}:{{ .Values.image.agent.tag }}"
