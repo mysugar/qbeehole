@@ -15,10 +15,6 @@ image:
     repository: browserless/chrome
     tag: latest
     pullPolicy: IfNotPresent
-  ssh:
-    repository: lscr.io/linuxserver/openssh-server
-    tag: latest
-    pullPolicy: IfNotPresent
 
 persistence:
   enabled: true
@@ -118,10 +114,3 @@ resources:
     limits:
       cpu: 1500m
       memory: 2304Mi
-  ssh:
-    requests:
-      cpu: 25m
-      memory: 64Mi
-    limits:
-      cpu: 250m
-      memory: 256Mi
