@@ -174,15 +174,7 @@ spec:
               chown -R {{ .Values.env.uid }}:{{ .Values.env.gid }} /config
               ssh-keygen -A
               /usr/sbin/sshd -D -e -p {{ .Values.service.ssh.port }} -o PidFile=/tmp/sshd.pid -o PasswordAuthentication=no -o PubkeyAuthentication=yes -o AuthorizedKeysFile=/config/.ssh/authorized_keys -o PermitRootLogin=no -o AllowUsers={{ .Values.ssh.user }} -o UsePAM=no &
-              sshd_pid=$!
-              /opt/hermes/.venv/bin/hermes gateway run &
-              gateway_pid=$!
-              trap 'kill "$sshd_pid" "$gateway_pid" 2>/dev/null || true' INT TERM EXIT
-              wait "$gateway_pid"
-              gateway_status=$?
-              kill "$sshd_pid" 2>/dev/null || true
-              wait "$sshd_pid" 2>/dev/null || true
-              exit "$gateway_status"
+              exec /opt/hermes/docker/entrypoint.sh gateway run
           ports:
             - name: agent-http
               containerPort: {{ .Values.service.agent.port }}
