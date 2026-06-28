@@ -174,7 +174,7 @@ spec:
               chown -R {{ .Values.env.uid }}:{{ .Values.env.gid }} /config
               ssh-keygen -A
               /usr/sbin/sshd -D -e -p {{ .Values.service.ssh.port }} -o PidFile=/tmp/sshd.pid -o PasswordAuthentication=no -o PubkeyAuthentication=yes -o AuthorizedKeysFile=/config/.ssh/authorized_keys -o PermitRootLogin=no -o AllowUsers={{ .Values.ssh.user }} -o UsePAM=no &
-              exec /init gateway run
+              exec su -s /bin/sh -c '/opt/hermes/.venv/bin/hermes gateway run' {{ .Values.ssh.user }}
           ports:
             - name: agent-http
               containerPort: {{ .Values.service.agent.port }}
