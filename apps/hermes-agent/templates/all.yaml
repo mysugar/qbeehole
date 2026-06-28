@@ -74,6 +74,16 @@ spec:
 {{- end }}
 {{- if .Values.ssh.enabled }}
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}-ssh-hermes-wrapper
+  namespace: {{ .Release.Namespace }}
+data:
+  hermes: |
+    #!/bin/sh
+    exec /opt/hermes/.venv/bin/python /opt/hermes/hermes "$@"
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ $name }}-ssh-config-pvc
@@ -382,6 +392,14 @@ spec:
           volumeMounts:
             - name: hermes-ssh-config
               mountPath: /config
+            - name: hermes-home
+              mountPath: /opt/data
+            - name: hermes-agent-src
+              mountPath: /opt/hermes
+            - name: hermes-ssh-hermes-wrapper
+              mountPath: /usr/local/bin/hermes
+              subPath: hermes
+              readOnly: true
 {{- end }}
       volumes:
         - name: hermes-home
@@ -397,6 +415,10 @@ spec:
         - name: hermes-ssh-config
           persistentVolumeClaim:
             claimName: {{ $name }}-ssh-config-pvc
+        - name: hermes-ssh-hermes-wrapper
+          configMap:
+            name: {{ $name }}-ssh-hermes-wrapper
+            defaultMode: 0755
 {{- end }}
 ---
 apiVersion: v1
