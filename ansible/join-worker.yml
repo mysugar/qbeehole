@@ -7,10 +7,12 @@
       slurp:
         src: /var/lib/rancher/k3s/server/node-token
       register: node_token_b64
+      tags: ["always"]
 
     - name: Store token as fact
       set_fact:
         k3s_token: "{{ node_token_b64.content | b64decode | trim }}"
+      tags: ["always"]
 
 - name: Join Worker Node to Cluster
   hosts: k3s_workers
@@ -25,7 +27,7 @@
     - name: Switch to domestic APT mirror
       replace:
         path: /etc/apt/sources.list
-        regexp: '(archive|security)\.ubuntu\.com'
+        regexp: '(us\.)?(archive|security)\.ubuntu\.com|us\.mirrors\.tuna\.edu\.cn'
         replace: "{{ apt_mirror }}"
       when: ansible_os_family == "Debian"
       tags: ["apt-mirror", "prep"]
@@ -53,13 +55,13 @@
         mode: '0755'
       tags: ["config"]
 
-    - name: Configure k3s-agent proxy and credentials environment file
+    - name: Configure k3s-agent environment file
       template:
         src: k3s.service.env.j2
         dest: /etc/systemd/system/k3s-agent.service.env
         mode: '0600'
-      register: proxy_config
-      tags: ["proxy", "config"]
+      register: service_env_config
+      tags: ["config"]
 
     - name: Configure k3s container registries
       template:
@@ -69,11 +71,17 @@
       register: registry_config
       tags: ["registry", "config"]
 
+    - name: Download k3s installer
+      get_url:
+        url: https://get.k3s.io
+        dest: /tmp/k3s-install.sh
+        mode: '0755'
+      tags: ["k3s", "install"]
+
     - name: Install k3s agent and join cluster
-      shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} K3S_URL={{ k3s_url }} K3S_TOKEN={{ k3s_token }} sh -s - agent {{ k3s_agent_args }}"
-      environment: "{{ proxy_env }}"
+      shell: "INSTALL_K3S_VERSION={{ k3s_version }} K3S_URL={{ k3s_url }} K3S_TOKEN={{ k3s_token }} /tmp/k3s-install.sh agent {{ k3s_agent_args }}"
       args:
-        creates: /usr/local/bin/k3s
+        creates: /etc/systemd/system/k3s-agent.service
       tags: ["k3s", "install"]
 
     - name: Restart k3s-agent if config changed
@@ -81,6 +89,6 @@
         name: k3s-agent
         state: restarted
         daemon_reload: true
-      when: proxy_config.changed or registry_config.changed
+      when: service_env_config.changed or registry_config.changed
       tags: ["config", "service"]
 

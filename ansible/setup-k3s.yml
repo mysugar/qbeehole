@@ -11,7 +11,7 @@
     - name: Switch to domestic APT mirror
       replace:
         path: /etc/apt/sources.list
-        regexp: '(archive|security)\.ubuntu\.com'
+        regexp: '(us\.)?(archive|security)\.ubuntu\.com|us\.mirrors\.tuna\.edu\.cn'
         replace: "{{ apt_mirror }}"
       when: ansible_os_family == "Debian"
       tags: ["apt-mirror", "prep"]
@@ -39,13 +39,13 @@
         mode: '0755'
       tags: ["config"]
 
-    - name: Configure k3s proxy environment file
+    - name: Configure k3s service environment file
       template:
         src: k3s.service.env.j2
         dest: /etc/systemd/system/k3s.service.env
         mode: '0600'
-      register: proxy_config
-      tags: ["proxy", "config"]
+      register: service_env_config
+      tags: ["config"]
 
     - name: Configure k3s container registries
       template:
@@ -57,7 +57,6 @@
 
     - name: Install k3s
       shell: "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} INSTALL_K3S_EXEC='server {{ k3s_install_args }}' sh -"
-      environment: "{{ proxy_env }}"
       args:
         creates: /usr/local/bin/k3s
       tags: ["k3s", "install"]
@@ -67,7 +66,7 @@
         name: k3s
         state: restarted
         daemon_reload: true
-      when: proxy_config.changed or registry_config.changed
+      when: service_env_config.changed or registry_config.changed
       tags: ["config", "service"]
 
     - name: Wait for k3s to be ready
