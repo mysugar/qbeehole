@@ -11,8 +11,6 @@ spec:
       labels:
         app: cloudflared
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: "ubuntu-jammy"
       containers:
       - name: cloudflared
         image: cloudflare/cloudflared:latest

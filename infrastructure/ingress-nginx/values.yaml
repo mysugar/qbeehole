@@ -6,5 +6,3 @@ ingress-nginx:
       enabled: true
     admissionWebhooks:
       enabled: false  # Simplified for HomeLab, can enable later
-    nodeSelector:
-      kubernetes.io/hostname: "ubuntu-jammy"
